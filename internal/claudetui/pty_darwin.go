@@ -10,11 +10,11 @@ import (
 
 // openPTY opens a pseudo-terminal: its master, and the name of its slave.
 func openPTY() (*os.File, string, error) {
-	m, err := os.OpenFile("/dev/ptmx", os.O_RDWR|syscall.O_NOCTTY, 0)
+	fd, err := unix.Open("/dev/ptmx", unix.O_RDWR|syscall.O_NOCTTY|unix.O_NONBLOCK, 0)
 	if err != nil {
 		return nil, "", err
 	}
-	fd := int(m.Fd())
+	m := os.NewFile(uintptr(fd), "/dev/ptmx")
 	if err := unix.IoctlSetInt(fd, unix.TIOCPTYGRANT, 0); err != nil {
 		m.Close()
 		return nil, "", err
